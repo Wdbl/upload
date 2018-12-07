@@ -3,6 +3,24 @@
 	<head>
 		<meta charset="UTF-8">
 		<title></title>
+		<style type="text/css">
+			#div{
+				width: 1100px;
+				border: solid 1px plum;
+			}
+			table{
+				width: 90%;
+				border-collapse: collapse;
+				border: solid 1px pink;
+				margin: 20px auto;
+			}
+			#ubd{
+				display: none;
+			}
+			td{
+				text-align: center;
+			}
+		</style>
 	</head>
 	<body>
 		<div id="div">
@@ -15,7 +33,143 @@
 			</select>
 			商品单价：<input type="text" name="" id="" value="" />
 			商品库存：<input type="text" name="" id="" value="" />
+			<button id="add">提交</button><br />
+			<button id="ubd">确认修改</button>
+			<button id="frt">水果类</button>
+			<button id="veg">蔬菜类</button>
+			<button id="met">肉类</button><br />
 			
+			<table border="" cellspacing="" cellpadding="">
+				<thead>
+					<tr>
+						<th>商品名称</th>
+						<th>商品类别</th>
+						<th>商品单价</th>
+						<th>商品库存</th>
+						<th>商品时间</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					
+				</tbody>
+				
+			</table>			
 		</div>
 	</body>
+	<script src="../js/baiduTemplate.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../js/jquery-1.11.1.min.js" type="text/javascript" charset="utf-8"></script>
+	<!--/<script src="../js/db.js" type="text/javascript" charset="utf-8"></script>-->
+	<script type="text/javascript">
+		//添加
+		$("#add").click(function(){
+			var name=$("input").eq(0).val();
+			var selc=$("select").eq(0).val();
+			var price=$("input").eq(1).val();
+			var sale=$("input").eq(2).val();
+			var time=new Date().getTime();
+			$.ajax({
+				type:"post",
+				url:"http://localhost:8080/add",
+				data:{name:name,selc:selc,price:price,sale:sale,time:time},				
+				success(res){
+					console.log(res)
+					inpt()
+				}
+			});
+		})
+		
+		//渲染
+		inpt()
+		function inpt(){
+			$.ajax({
+				type:"get",
+				url:"http://localhost:8080/msg",
+				async:true,
+				success(res){
+					var pag="";
+					for (var i = 0; i < res.length; i++) {
+						pag+=`
+							<tr>
+								<td>${res[i].name}</td>
+								<td>${res[i].selc}</td>
+								<td>${res[i].price}</td>
+								<td>${res[i].sale}</td>
+								<td>${timer(res[i].time)}</td>
+								<td>
+								 	<a href="#" onclick=del('${res[i]._id}')>删除</a>
+								 	<a href="#" onclick=sure(${JSON.stringify(res[i])})>修改</a>
+								</td>
+					    	</tr>
+						`
+					}
+					$("tbody").eq(0).html(pag)
+				}
+			});
+		}
+		
+		//删除
+		function del(id){
+			
+			$.ajax({
+				type:"post",
+				url:"http://localhost:8080/del",
+				data:{id:id},
+				success(res){
+					console.log(res)
+					inpt()
+				}
+				
+			});
+		}
+		
+		
+		//修改
+		var id1=null;
+		function sure(obj){
+			var id=obj._id;
+			$("#add").hide();
+			$("#ubd").show();
+		    $("input").eq(0).val(obj.name);
+			$("select").eq(0).val(obj.selc);
+			$("input").eq(1).val(obj.price);
+			$("input").eq(2).val(obj.sale);
+            id1=id;
+            
+		}
+		
+		//确认修改
+		$("#ubd").click(function(){
+			var name=$("input").eq(0).val();
+			var selc=$("select").eq(0).val();
+			var price=$("input").eq(1).val();
+			var sale=$("input").eq(2).val();
+			var time=new Date().getTime();
+			$("#add").show();
+			$("#ubd").hide();
+			$.ajax({
+				type:"post",
+				url:"http://localhost:8080/sure",
+				data:{name:name,selc:selc,price:price,sale:sale,time:time,id:id1},				
+				success(res){
+					console.log(res)
+					inpt()
+				}
+			});
+		})
+		
+		//时间
+		function timer(time) {
+			time = time * 1;
+			var date = new Date(time);
+			var str = "年-月-日 时:分:秒"
+			return str.replace("年", date.getFullYear())
+				.replace("月", ((date.getMonth() + 1) < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1))
+				.replace("日", (date.getDate()) < 10 ? "0" + (date.getDate()) : date.getDate())
+				.replace("时", (date.getHours()) < 10 ? "0" + (date.getHours()) : date.getHours())
+				.replace("分", (date.getMinutes()) < 10 ? "0" + (date.getMinutes()) : date.getMinutes())
+				.replace("秒", (date.getSeconds()) < 10 ? "0" + (date.getSeconds()) : date.getSeconds())
+		}
+
+	</script>
 </html>
